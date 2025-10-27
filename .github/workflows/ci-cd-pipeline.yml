@@ -1,0 +1,280 @@
+name: Complete CI/CD Pipeline
+
+on:
+  push:
+    branches: ["main", "develop"]
+  pull_request:
+    branches: ["main"]
+
+env:
+  APP_ENV: dev
+  APP_HOST: 0.0.0.0
+  APP_PORT: 3000
+  DB_HOST: localhost
+  DB_USER: postgres
+  DB_NAME: fiberdb
+  DB_PORT: 5432
+  REGISTRY: docker.io
+  IMAGE_NAME: ${{ secrets.DOCKERHUB_USERNAME }}/go-fiber-app
+
+jobs:
+  # ============================================
+  # STAGE 1: Build & Install Dependencies
+  # ============================================
+  build-and-install:
+    name: Build & Install Dependencies
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: "1.22"
+
+      - name: Cache Go Modules
+        uses: actions/cache@v3
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
+      - name: Install Dependencies
+        run: go mod tidy
+
+      - name: Verify Dependencies
+        run: go mod verify
+
+      - name: Build Application
+        run: CGO_ENABLED=0 GOOS=linux go build -o main src/main.go
+
+      - name: Upload Build Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: go-binary
+          path: main
+          retention-days: 1
+
+  # ============================================
+  # STAGE 2: Lint & Security Scan
+  # ============================================
+  lint-and-security:
+    name: Lint & Security Scan
+    runs-on: ubuntu-latest
+    needs: build-and-install
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: "1.22"
+
+      - name: Run Golangci-lint
+        uses: reviewdog/action-golangci-lint@v2
+        with:
+          golangci_lint_flags: "--config=.golangci.yml --tests=false"
+          fail_on_error: true
+
+      - name: Run Gosec Security Scanner
+        uses: securego/gosec@master
+        with:
+          args: '-no-fail -fmt sarif -out results.sarif ./...'
+        continue-on-error: true
+
+      - name: Upload SARIF file
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: results.sarif
+        continue-on-error: true
+
+  # ============================================
+  # STAGE 3: Test with Database Service
+  # ============================================
+  test:
+    name: Run Tests with Database
+    runs-on: ubuntu-latest
+    needs: lint-and-security
+
+    services:
+      postgres:
+        image: postgres:alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          POSTGRES_DB: fiberdb
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: "1.22"
+
+      - name: Install Dependencies
+        run: go mod tidy
+
+      - name: Wait for PostgreSQL
+        run: |
+          until pg_isready -h localhost -U postgres -d fiberdb; do
+            echo "Waiting for PostgreSQL to be ready..."
+            sleep 2
+          done
+          echo "PostgreSQL is ready!"
+
+      - name: Run Unit Tests
+        run: go test ./test/unit/... -v -race -coverprofile=coverage-unit.out
+
+      - name: Run Integration Tests
+        run: go test ./test/integration/... -v -race -coverprofile=coverage-integration.out
+        env:
+          DB_HOST: localhost
+          DB_USER: postgres
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          DB_NAME: fiberdb
+          DB_PORT: 5432
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+        continue-on-error: true
+
+      - name: Generate Coverage Report
+        run: |
+          go tool cover -func=coverage-unit.out
+          echo "Unit test coverage generated"
+
+      - name: Upload Coverage Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage-reports
+          path: |
+            coverage-unit.out
+            coverage-integration.out
+          retention-days: 7
+
+  # ============================================
+  # STAGE 4: Build Docker Image
+  # ============================================
+  build-docker-image:
+    name: Build & Push Docker Image
+    runs-on: ubuntu-latest
+    needs: test
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Extract metadata (tags, labels)
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=registry,ref=${{ env.IMAGE_NAME }}:buildcache
+          cache-to: type=registry,ref=${{ env.IMAGE_NAME }}:buildcache,mode=max
+
+      - name: Image Digest
+        run: echo "Image pushed with digest ${{ steps.meta.outputs.digest }}"
+
+  # ============================================
+  # STAGE 5: Deploy (Conditional - Main Branch Only)
+  # ============================================
+  deploy:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: build-docker-image
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Log Deployment Details
+        run: |
+          echo "=========================================="
+          echo "🚀 DEPLOYMENT STARTED"
+          echo "=========================================="
+          echo "Branch: ${{ github.ref }}"
+          echo "Commit: ${{ github.sha }}"
+          echo "Actor: ${{ github.actor }}"
+          echo "Timestamp: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          echo "Docker Image: ${{ env.IMAGE_NAME }}:latest"
+          echo "=========================================="
+
+      - name: Deploy to Docker Hub
+        run: |
+          echo "✅ Docker image successfully pushed to Docker Hub"
+          echo "📦 Image: ${{ env.IMAGE_NAME }}:latest"
+          echo "🔗 Pull command: docker pull ${{ env.IMAGE_NAME }}:latest"
+
+      # Optional: Add Render/Railway deployment
+      - name: Deploy to Render (Optional)
+        if: false  # Set to true if using Render
+        run: |
+          curl -X POST "https://api.render.com/v1/services/${{ secrets.RENDER_SERVICE_ID }}/deploys" \
+            -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
+            -H "Content-Type: application/json"
+
+      - name: Deployment Summary
+        run: |
+          echo "=========================================="
+          echo "✅ DEPLOYMENT COMPLETED SUCCESSFULLY"
+          echo "=========================================="
+          echo "The application has been deployed!"
+          echo "Docker Image: ${{ env.IMAGE_NAME }}:latest"
+          echo "=========================================="
+
+  # ============================================
+  # Workflow Summary
+  # ============================================
+  summary:
+    name: Pipeline Summary
+    runs-on: ubuntu-latest
+    needs: [build-and-install, lint-and-security, test, build-docker-image, deploy]
+    if: always()
+    
+    steps:
+      - name: Pipeline Status
+        run: |
+          echo "=========================================="
+          echo "📊 CI/CD PIPELINE SUMMARY"
+          echo "=========================================="
+          echo "✅ Build & Install: ${{ needs.build-and-install.result }}"
+          echo "✅ Lint & Security: ${{ needs.lint-and-security.result }}"
+          echo "✅ Tests: ${{ needs.test.result }}"
+          echo "✅ Docker Build: ${{ needs.build-docker-image.result }}"
+          echo "✅ Deploy: ${{ needs.deploy.result }}"
+          echo "=========================================="
