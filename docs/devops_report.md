@@ -34,7 +34,9 @@ This ensures that every change is verified before it gets merged.
 ✅ Why this works:
 
 Each step is clear and isolated
+
 Failures are easy to trace
+
 Builds remain reproducible
 
 
@@ -84,8 +86,11 @@ go test ./...
 ✅ What’s Covered
 
 Endpoint behavior (login, register, CRUD)
+
 Validation rules (passwords, email format, etc.)
+
 Model serialization (e.g., hiding sensitive fields)
+
 System health endpoints
 
 This gives solid coverage of both core logic and expected API behavior.
