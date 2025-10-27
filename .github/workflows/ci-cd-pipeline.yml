@@ -52,7 +52,7 @@ jobs:
         run: CGO_ENABLED=0 GOOS=linux go build -o main src/main.go
 
       - name: Upload Build Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: go-binary
           path: main
@@ -156,7 +156,7 @@ jobs:
           echo "Unit test coverage generated"
 
       - name: Upload Coverage Artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: coverage-reports
           path: |
