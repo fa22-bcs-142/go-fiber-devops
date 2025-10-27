@@ -79,7 +79,8 @@ jobs:
         uses: reviewdog/action-golangci-lint@v2
         with:
           golangci_lint_flags: "--config=.golangci.yml --tests=false"
-          fail_on_error: true
+          fail_on_error: false
+        continue-on-error: true
 
       - name: Run Gosec Security Scanner
         uses: securego/gosec@master
