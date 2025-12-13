@@ -1,39 +1,33 @@
 variable "cluster_name" {
-  description = "Name of the EKS cluster"
-  type        = string
+  type = string
 }
 
 variable "subnet_ids" {
-  description = "List of subnet IDs for the EKS cluster"
-  type        = list(string)
+  type = list(string)
+  default = []
 }
 
 variable "desired_size" {
-  description = "Desired number of worker nodes"
-  type        = number
-  default     = 2
+  type    = number
+  default = 2
 }
 
 variable "max_size" {
-  description = "Maximum number of worker nodes"
-  type        = number
-  default     = 3
+  type    = number
+  default = 3
 }
 
 variable "min_size" {
-  description = "Minimum number of worker nodes"
-  type        = number
-  default     = 1
+  type    = number
+  default = 1
 }
 
 variable "instance_types" {
-  description = "List of instance types for the node group"
-  type        = list(string)
-  default     = ["t3.medium"]
+  type    = list(string)
+  default = ["t3.medium"]
 }
 
 variable "tags" {
-  description = "Tags to apply to resources"
-  type        = map(string)
-  default     = {}
+  type    = map(string)
+  default = {}
 }
