@@ -1,0 +1,43 @@
+apiVersion: v1
+kind:  ConfigMap
+metadata:
+  name: app-config
+  namespace:  go-fiber-dev
+data: 
+  APP_ENV: "dev"
+  APP_HOST: "0.0.0.0"
+  APP_PORT: "3000"
+  APP_URL:  "http://localhost:3000"
+  DB_HOST: "postgres-service"
+  DB_PORT:  "5432"
+  DB_NAME: "fiberdb"
+  DB_USER: "postgres"
+  REDIS_HOST: "redis-service"
+  REDIS_PORT:  "6379"
+  REDIS_DB: "0"
+  JWT_ACCESS_EXP_MINUTES: "30"
+  JWT_REFRESH_EXP_DAYS: "30"
+  JWT_RESET_PASSWORD_EXP_MINUTES: "10"
+  JWT_VERIFY_EMAIL_EXP_MINUTES: "10"
+---
+apiVersion: v1
+kind:  ConfigMap
+metadata:
+  name: app-config
+  namespace:  go-fiber-prod
+data: 
+  APP_ENV: "prod"
+  APP_HOST: "0.0.0.0"
+  APP_PORT: "3000"
+  APP_URL:  "https://your-production-domain.com"
+  DB_HOST: "your-rds-endpoint. rds.amazonaws.com"
+  DB_PORT: "5432"
+  DB_NAME: "fiberdb"
+  DB_USER: "postgres"
+  REDIS_HOST: "redis-service"
+  REDIS_PORT:  "6379"
+  REDIS_DB: "0"
+  JWT_ACCESS_EXP_MINUTES: "30"
+  JWT_REFRESH_EXP_DAYS:  "30"
+  JWT_RESET_PASSWORD_EXP_MINUTES: "10"
+  JWT_VERIFY_EMAIL_EXP_MINUTES: "10"
