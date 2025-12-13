@@ -1,0 +1,25 @@
+---
+- name: Deploy Go Fiber Application
+  hosts: "{{ target_env | default('dev') }}"
+  gather_facts: yes
+  
+  vars:
+    app_name: go-fiber-app
+    namespace: "go-fiber-{{ environment }}"
+    
+  tasks:
+    - name:  Apply Kubernetes manifests
+      command: kubectl apply -k ../../../k8s/overlays/{{ environment }}/
+      args: 
+        chdir: "{{ playbook_dir }}"
+    
+    - name: Wait for deployment
+      command: kubectl rollout status deployment/{{ environment }}-go-fiber-app -n {{ namespace }} --timeout=300s
+    
+    - name: Get deployment status
+      command: kubectl get all -n {{ namespace }}
+      register: status
+    
+    - name: Show status
+      debug:
+        var:  status.stdout_lines
