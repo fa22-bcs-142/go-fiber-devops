@@ -8,7 +8,7 @@ replicas:
   - name: go-fiber-app
     count: 2
 images:
-  - name:  your-dockerhub-username/go-fiber-app
+  - name:  nehaghauri/go-fiber-app
     newTag: dev-latest
 commonLabels:
   environment: development
