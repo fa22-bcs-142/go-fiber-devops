@@ -1,0 +1,175 @@
+<svg viewBox="0 0 800 900" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="blueGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#4F46E5;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#7C3AED;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="greenGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#059669;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#10B981;stop-opacity:1" />
+    </linearGradient>
+    <filter id="shadow">
+      <feDropShadow dx="0" dy="2" stdDeviation="4" flood-opacity="0.15"/>
+    </filter>
+  </defs>
+  
+  <!-- Title -->
+  <text x="400" y="40" font-family="Arial, sans-serif" font-size="28" font-weight="bold" fill="#1F2937" text-anchor="middle">
+    CI/CD Pipeline Flow
+  </text>
+  
+  <!-- Git Push Stage -->
+  <g filter="url(#shadow)">
+    <rect x="275" y="80" width="250" height="70" rx="12" fill="url(#blueGrad)"/>
+    <text x="400" y="108" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="white" text-anchor="middle">
+      Git Push / Pull Request
+    </text>
+    <text x="400" y="132" font-family="Arial, sans-serif" font-size="13" fill="white" text-anchor="middle">
+      Trigger: main branch
+    </text>
+  </g>
+  
+  <!-- Arrow -->
+  <path d="M 400 150 L 400 190" stroke="#6B7280" stroke-width="3" fill="none" marker-end="url(#arrowhead)"/>
+  
+  <!-- GitHub Actions Runner -->
+  <g filter="url(#shadow)">
+    <rect x="275" y="190" width="250" height="70" rx="12" fill="#F3F4F6" stroke="#D1D5DB" stroke-width="2"/>
+    <text x="400" y="218" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#1F2937" text-anchor="middle">
+      GitHub Actions Runner
+    </text>
+    <text x="400" y="242" font-family="Arial, sans-serif" font-size="13" fill="#6B7280" text-anchor="middle">
+      Checkout code • Setup Go
+    </text>
+  </g>
+  
+  <!-- Arrow -->
+  <path d="M 400 260 L 400 300" stroke="#6B7280" stroke-width="3" fill="none" marker-end="url(#arrowhead)"/>
+  
+  <!-- Install Dependencies -->
+  <g filter="url(#shadow)">
+    <rect x="275" y="300" width="250" height="70" rx="12" fill="white" stroke="#D1D5DB" stroke-width="2"/>
+    <text x="400" y="328" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#1F2937" text-anchor="middle">
+      Install Dependencies
+    </text>
+    <text x="400" y="352" font-family="Arial, sans-serif" font-size="13" fill="#6B7280" text-anchor="middle">
+      go mod download
+    </text>
+  </g>
+  
+  <!-- Arrow -->
+  <path d="M 400 370 L 400 410" stroke="#6B7280" stroke-width="3" fill="none" marker-end="url(#arrowhead)"/>
+  
+  <!-- Run Tests -->
+  <g filter="url(#shadow)">
+    <rect x="275" y="410" width="250" height="90" rx="12" fill="white" stroke="#D1D5DB" stroke-width="2"/>
+    <text x="400" y="438" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#1F2937" text-anchor="middle">
+      Run Unit Tests
+    </text>
+    <text x="400" y="462" font-family="Arial, sans-serif" font-size="13" fill="#6B7280" text-anchor="middle">
+      • Authentication tests
+    </text>
+    <text x="400" y="480" font-family="Arial, sans-serif" font-size="13" fill="#6B7280" text-anchor="middle">
+      • Health checks • User operations
+    </text>
+  </g>
+  
+  <!-- Arrow with decision -->
+  <path d="M 400 500 L 400 540" stroke="#6B7280" stroke-width="3" fill="none" marker-end="url(#arrowhead)"/>
+  
+  <!-- Decision Diamond -->
+  <g filter="url(#shadow)">
+    <path d="M 400 540 L 470 590 L 400 640 L 330 590 Z" fill="#FEF3C7" stroke="#F59E0B" stroke-width="2"/>
+    <text x="400" y="595" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#92400E" text-anchor="middle">
+      Tests Pass?
+    </text>
+  </g>
+  
+  <!-- Fail path -->
+  <path d="M 330 590 L 150 590" stroke="#EF4444" stroke-width="3" fill="none" stroke-dasharray="5,5"/>
+  <g filter="url(#shadow)">
+    <rect x="50" y="565" width="100" height="50" rx="8" fill="#FEE2E2" stroke="#EF4444" stroke-width="2"/>
+    <text x="100" y="583" font-family="Arial, sans-serif" font-size="13" font-weight="bold" fill="#991B1B" text-anchor="middle">
+      ✗ Pipeline
+    </text>
+    <text x="100" y="601" font-family="Arial, sans-serif" font-size="13" font-weight="bold" fill="#991B1B" text-anchor="middle">
+      Failed
+    </text>
+  </g>
+  
+  <!-- Success path -->
+  <path d="M 400 640 L 400 680" stroke="#10B981" stroke-width="3" fill="none" marker-end="url(#arrowhead-green)"/>
+  
+  <!-- Build Docker Image -->
+  <g filter="url(#shadow)">
+    <rect x="275" y="680" width="250" height="70" rx="12" fill="white" stroke="#D1D5DB" stroke-width="2"/>
+    <text x="400" y="708" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#1F2937" text-anchor="middle">
+      Build Docker Image
+    </text>
+    <text x="400" y="732" font-family="Arial, sans-serif" font-size="13" fill="#6B7280" text-anchor="middle">
+      docker build • Optimize layers
+    </text>
+  </g>
+  
+  <!-- Arrow -->
+  <path d="M 400 750 L 400 790" stroke="#6B7280" stroke-width="3" fill="none" marker-end="url(#arrowhead)"/>
+  
+  <!-- Deploy -->
+  <g filter="url(#shadow)">
+    <rect x="275" y="790" width="250" height="70" rx="12" fill="url(#greenGrad)"/>
+    <text x="400" y="818" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="white" text-anchor="middle">
+      Deploy / Publish
+    </text>
+    <text x="400" y="842" font-family="Arial, sans-serif" font-size="13" fill="white" text-anchor="middle">
+      Push to registry • Update services
+    </text>
+  </g>
+  
+  <!-- Arrow markers -->
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#6B7280" />
+    </marker>
+    <marker id="arrowhead-green" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#10B981" />
+    </marker>
+  </defs>
+  
+  <!-- Legend/Notes -->
+  <g>
+    <rect x="580" y="200" width="200" height="200" rx="8" fill="#F9FAFB" stroke="#E5E7EB" stroke-width="1.5" filter="url(#shadow)"/>
+    <text x="680" y="225" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#1F2937" text-anchor="middle">
+      Key Technologies
+    </text>
+    
+    <circle cx="600" cy="255" r="4" fill="#4F46E5"/>
+    <text x="615" y="260" font-family="Arial, sans-serif" font-size="12" fill="#4B5563">
+      Go Fiber
+    </text>
+    
+    <circle cx="600" cy="280" r="4" fill="#4F46E5"/>
+    <text x="615" y="285" font-family="Arial, sans-serif" font-size="12" fill="#4B5563">
+      GORM + PostgreSQL
+    </text>
+    
+    <circle cx="600" cy="305" r="4" fill="#4F46E5"/>
+    <text x="615" y="310" font-family="Arial, sans-serif" font-size="12" fill="#4B5563">
+      Docker Compose
+    </text>
+    
+    <circle cx="600" cy="330" r="4" fill="#4F46E5"/>
+    <text x="615" y="335" font-family="Arial, sans-serif" font-size="12" fill="#4B5563">
+      Testify
+    </text>
+    
+    <circle cx="600" cy="355" r="4" fill="#4F46E5"/>
+    <text x="615" y="360" font-family="Arial, sans-serif" font-size="12" fill="#4B5563">
+      GitHub Actions
+    </text>
+    
+    <circle cx="600" cy="380" r="4" fill="#10B981"/>
+    <text x="615" y="385" font-family="Arial, sans-serif" font-size="12" fill="#4B5563">
+      Secrets via .env
+    </text>
+  </g>
+</svg>
