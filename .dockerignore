@@ -1,0 +1,18 @@
+.git
+.github
+.env
+.env.example
+test/
+*. md
+. gitignore
+Makefile
+. air.toml
+.golangci.yml
+docs/
+*. log
+tmp/
+.DS_Store
+coverage*. out
+*. test
+. vscode/
+. idea/

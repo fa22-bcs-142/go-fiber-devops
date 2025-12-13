@@ -1,5 +1,5 @@
-# Environment varibales
-.env*
+# Environment variables
+. env*
 !.env*.example
 
 # Temporary
@@ -7,3 +7,34 @@ tmp/
 
 lint.txt
 main
+
+# Environment variables (duplicate section - you can merge these)
+.env
+.env.local
+.env. *. local
+
+# AWS credentials
+.aws/
+*. pem
+*.key
+
+# Terraform
+.terraform/
+*. tfstate
+*.tfstate.*
+*.tfvars
+! *. tfvars.example
+. terraform.lock.hcl
+terraform.tfplan
+
+# Kubernetes
+kubeconfig
+*.kubeconfig
+kube-config
+
+# Ansible
+*. retry
+.ansible/
+
+# Monitoring
+monitoring/data/

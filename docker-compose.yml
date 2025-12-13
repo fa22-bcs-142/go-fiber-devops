@@ -28,6 +28,26 @@ services:
     networks:
       - go-network
 
+  # ============================================
+  # NEW: Redis Service
+  # ============================================
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    restart: always
+    ports:  
+      - "6379:6379"
+    networks:
+      - go-network
+    volumes:
+      - redis-data:/data
+    healthcheck:  
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout:  5s
+      retries:  5
+    command: redis-server --appendonly yes
+
   go-app:
     build: .
     image: go-app
@@ -36,23 +56,26 @@ services:
     depends_on:
       postgresdb:
         condition: service_healthy
+      redis:
+        condition: service_healthy
     volumes:
-      - .:/usr/src/go-app
+      - . :/usr/src/go-app
     restart: on-failure
     env_file:
       - .env
     networks:
       - go-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "${APP_URL}/v1/health-check"]
+      test:  ["CMD", "curl", "-f", "${APP_URL}/v1/health-check"]
       interval: 40s
       timeout: 30s
       retries: 3
       start_period: 30s
 
 volumes:
-  dbdata:
+  dbdata: 
+  redis-data:  # NEW: Redis volume
 
 networks:
-  go-network:
+  go-network: 
     driver: bridge

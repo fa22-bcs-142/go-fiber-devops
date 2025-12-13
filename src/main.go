@@ -4,6 +4,7 @@ import (
 	"app/src/config"
 	"app/src/database"
 	"app/src/middleware"
+	"app/src/redis"
 	"app/src/router"
 	"app/src/utils"
 	"context"
@@ -22,13 +23,13 @@ import (
 // @title go-fiber-boilerplate API documentation
 // @version 1.0.0
 // @license.name MIT
-// @license.url https://github.com/indrayyana/go-fiber-boilerplate/blob/main/LICENSE
-// @host localhost:3000
+// @license. url https://github.com/indrayyana/go-fiber-boilerplate/blob/main/LICENSE
+// @host localhost: 3000
 // @BasePath /v1
 // @securityDefinitions.apikey BearerAuth
 // @in header
 // @name Authorization
-// @description Example Value: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+// @description Example Value:  Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -36,6 +37,11 @@ func main() {
 	app := setupFiberApp()
 	db := setupDatabase()
 	defer closeDatabase(db)
+
+	// Initialize Redis
+	setupRedis()
+	defer closeRedis()
+
 	setupRoutes(app, db)
 
 	address := fmt.Sprintf("%s:%d", config.AppHost, config.AppPort)
@@ -64,6 +70,24 @@ func setupDatabase() *gorm.DB {
 	db := database.Connect(config.DBHost, config.DBName)
 	// Add any additional database setup if needed
 	return db
+}
+
+func setupRedis() {
+	if err := redis.Init(); err != nil {
+		utils.Log.Errorf("Failed to connect to Redis: %v", err)
+		utils.Log.Warn("Continuing without Redis - caching will be disabled")
+		// Application continues without Redis
+	} else {
+		utils.Log.Info("✅ Redis connected successfully!")
+	}
+}
+
+func closeRedis() {
+	if err := redis.Close(); err != nil {
+		utils.Log.Errorf("Error closing Redis connection: %v", err)
+	} else {
+		utils.Log.Info("Redis connection closed successfully")
+	}
 }
 
 func setupRoutes(app *fiber.App, db *gorm.DB) {
@@ -100,6 +124,10 @@ func handleGracefulShutdown(ctx context.Context, app *fiber.App, serverErrors <-
 		utils.Log.Fatalf("Server error: %v", err)
 	case <-quit:
 		utils.Log.Info("Shutting down server...")
+
+		// Close Redis before shutting down
+		closeRedis()
+
 		if err := app.Shutdown(); err != nil {
 			utils.Log.Fatalf("Error during server shutdown: %v", err)
 		}

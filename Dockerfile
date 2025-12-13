@@ -9,6 +9,7 @@ FROM alpine:latest
 RUN apk add --no-cache curl
 WORKDIR /root
 COPY --from=build /app/main .
+COPY --from=build /app/.env.docker .env
 
 EXPOSE 3000
 CMD ["./main"]
