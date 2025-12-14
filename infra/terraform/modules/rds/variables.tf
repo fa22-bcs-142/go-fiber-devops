@@ -22,7 +22,6 @@ variable "db_name" {
   default     = "gofiber"
 }
 
-# Two possible username/password names are supported (db_username or username).
 variable "db_username" {
   description = "DB username (alternate name)"
   type        = string
@@ -89,4 +88,11 @@ variable "tags" {
   description = "Tags for DB"
   type        = map(string)
   default     = {}
+}
+
+# NEW: accept vpc_id passed from root module
+variable "vpc_id" {
+  description = "VPC ID where RDS will be placed"
+  type        = string
+  default     = ""
 }
