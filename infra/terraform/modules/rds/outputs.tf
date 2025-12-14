@@ -18,8 +18,7 @@ output "db_username" {
   value       = local.effective_username
 }
 
-# Expose the vpc_id back so root outputs referencing it won't error
 output "vpc_id" {
-  description = "VPC ID passed into module (simulated echo)"
+  description = "Echoed vpc_id (simulated)"
   value       = var.vpc_id
 }

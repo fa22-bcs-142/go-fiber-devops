@@ -6,7 +6,7 @@ module "vpc" {
   public_subnet_cidrs  = var.public_subnet_cidrs
   private_subnet_cidrs = var.private_subnet_cidrs
   project_name         = var.project_name
-  environment          = var. environment
+  environment          = var.environment
 }
 
 module "eks" {
@@ -17,7 +17,7 @@ module "eks" {
   desired_size   = var.eks_desired_size
   max_size       = var.eks_max_size
   min_size       = var.eks_min_size
-  instance_types = var. eks_node_instance_types
+  instance_types = var.eks_node_instance_types
 
   tags = {
     Project     = var.project_name
@@ -36,14 +36,14 @@ module "rds" {
   password            = var.db_password
   instance_class      = var.db_instance_class
   allocated_storage   = var.db_allocated_storage
-  subnet_ids          = module.vpc. private_subnets
+  subnet_ids          = module.vpc.private_subnets
   vpc_id              = module.vpc.vpc_id
-  allowed_cidr_blocks = var. private_subnet_cidrs
+  allowed_cidr_blocks = var.private_subnet_cidrs
 
   tags = {
     Project     = var.project_name
     Environment = var.environment
   }
 
-  depends_on = [module. vpc]
+  depends_on = [module.vpc]
 }
