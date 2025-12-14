@@ -1,25 +1,19 @@
-output "db_endpoint" {
-  description = "RDS endpoint"
-  value       = aws_db_instance.postgres.endpoint
-  sensitive   = true
-}
-
-output "db_address" {
-  description = "RDS address (hostname only)"
-  value       = aws_db_instance.postgres.address
-}
-
-output "db_port" {
-  description = "RDS port"
-  value       = aws_db_instance.postgres.port
+output "db_instance_endpoint" {
+  description = "Simulated RDS endpoint (for validation)"
+  value       = local.simulated_endpoint
 }
 
 output "db_name" {
   description = "Database name"
-  value       = aws_db_instance.postgres.db_name
+  value       = var.db_name
 }
 
-output "db_arn" {
-  description = "RDS ARN"
-  value       = aws_db_instance.postgres.arn
+output "db_identifier" {
+  description = "RDS identifier used (simulated)"
+  value       = local.effective_identifier
+}
+
+output "db_username" {
+  description = "Effective DB username (simulated)"
+  value       = local.effective_username
 }
