@@ -38,3 +38,7 @@ kube-config
 
 # Monitoring
 monitoring/data/
+
+**/terraform.tfstate
+**/terraform.tfstate.backup
+**/.terraform/
